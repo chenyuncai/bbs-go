@@ -39,7 +39,6 @@ services:
 
   site:
     container_name: bbs-go-site
-    image: mlogclub/bbs-go-site
     depends_on:
       - server
     build:

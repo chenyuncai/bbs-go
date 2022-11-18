@@ -6,17 +6,20 @@ ENV APP_HOME /code/bbs-go/site
 
 # code
 WORKDIR "$APP_HOME"
+ADD .npmrc ./
+RUN npm install -g pnpm@7.16.1 --registry=https://registry.npmmirror.com
+ADD package.json ./
+ADD pnpm-lock.yaml ./
+RUN pnpm fetch
+
 COPY . ./
 COPY nuxt.config.docker.js ./nuxt.config.js
 
-# install
-RUN npm config set registry https://registry.npm.taobao.org \
-  && npm config set sass_binary_site=https://npm.taobao.org/mirrors/node-sass
-RUN npm install
+RUN pnpm install --offline
 
 # build
 ENV NODE_ENV production
-RUN npm run build
+RUN pnpm run build
 
 EXPOSE 3000
 CMD ["npm","start"]

@@ -12,7 +12,7 @@ services:
       MYSQL_ROOT_PASSWORD: 123456
     volumes:
       - .docker-compose/mysql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d # 初始化脚本件目录, 这个目录中的.sh/sql文件会以字母顺序依次执行
-      # - ./mysql:/var/lib/mysql # 挂载数据件目录.如果非root账号执行，挂载目录必须是登录账号下目录
+      - /data/bbs-go/mysql:/var/lib/mysql # 挂载数据件目录.如果非root账号执行，挂载目录必须是登录账号下目录
       # - .docker-compose/mysql/conf.d:/etc/mysql/conf.d # 挂在配置文件目录s
     restart: always
     healthcheck:
@@ -24,18 +24,16 @@ services:
 
   server:
     container_name: bbs-go-server
-    image: mlogclub/bbs-go-server
     depends_on:
       mysql:
         condition: service_healthy
-
     ports:
       - 8082:8082
     build:
       dockerfile: Dockerfile
       context: ./server
     volumes:
-      - /data/docker:/data
+      - /bbs-go/data/docker:/data
       - ./server/bbs-go.docker.yaml:/app/bbs-go.docker.yaml
     restart: on-failure
 
@@ -44,9 +42,18 @@ services:
     image: mlogclub/bbs-go-site
     depends_on:
       - server
-    ports:
-      - 3000:3000
     build:
       dockerfile: Dockerfile
       context: ./site
+    restart: on-failure
+  admin:
+    container_name: bbs-go-admin
+    depends_on:
+      - server
+      - site
+    ports:
+      - 81:80
+    build:
+      dockerfile: Dockerfile
+      context: ./admin
     restart: on-failure
